@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  deploy_lambda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      -- uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Echo intro message
+        run: echo "starting process of uploading to aws!"
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Zip
+          run: |
+            cd package
+            zip -r ../my-deployment-package.zip .
+            cd ..
+            zip -g my-deployment-package.zip lambda_function.py
+            aws lambda update-function-code --function-name=parkingLot --zip-file=fileb://my-deployment-package.zip
+
+
