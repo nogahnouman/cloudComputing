@@ -1,4 +1,5 @@
 #!/bin/bash
+rm my-deployment-package.zip
 cd package
 zip -r ../my-deployment-package.zip .
 cd ..

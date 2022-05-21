@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 import json
 import os
 import sys
@@ -47,25 +46,25 @@ def lambda_handler(event, context):
     print ("in handler")
     print(event)
 
-    if event['path'] == "entry":
+    if event['path'] == "/entry":
         print("in entry event")
         plate = event['queryStringParameters']['plate']
         parking_lot = event['queryStringParameters']['parkingLot']
-        time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        time = datetime.now()
         id = str(uuid.uuid1())
         
         with conn.cursor() as cursor:
-            cursor.execute("create table payment ( ticketID varchar(255) NOT NULL, plate varchar(255) NOT NULL, parkingLot int NOT ,entryTime DATE, PRIMARY KEY (ticketID))")
+            cursor.execute("create table IF NOT EXISTS parkings ( ticketID varchar(255) NOT NULL, plate varchar(255) NOT NULL, parkingLot int NOT NULL, entryTime DATETIME, PRIMARY KEY (ticketID))")
             print("before sql insert")
-            sql = f"INSERT INTO `payment` (`id`, `plate`, `parkingLot`, `entryTime`) VALUES ({id}, {plate}, {parking_lot}, {time})"
+            sql = "INSERT INTO parkings (ticketID, plate, parkingLot, entryTime) VALUES (%s,%s,%s,%s)"
             try: 
-                cursor.execute(sql)
+                cursor.execute(sql, (id, plate, parking_lot, time))
                 conn.commit()
             except (pymysql.Error, pymysql.Warning) as e:
                 print("cannot insert")
                 return {
                     'statusCode': 400,
-                    'body': json.dumps(e)
+                    'body': str(e)
                 }
         conn.commit()
         print("insert")
@@ -75,34 +74,35 @@ def lambda_handler(event, context):
             'body': json.dumps('Hello, your ticket id is ' + id)
         }
     
-    if event["path"] == 'exit':
+    if event["path"] == '/exit':
         ticketId = event['queryStringParameters']['ticketId']
         with conn.cursor() as cursor:
             try: 
-                sql = f"SELECT * FROM payment WHERE ID = {ticketId}"
-                cursor.execute(sql)
+                sql = f"SELECT * FROM parkings WHERE ticketID = %s"
+                cursor.execute(sql, ticketId)
             except (pymysql.Error, pymysql.Warning) as e:
                  return {
                     'statusCode': 400,
-                    'body': json.dumps(e)
+                    'body': str(e)
                 }
             data = cursor.fetchone()
+            print(data)
             now_time = datetime.now()
-            start_time = data["entryTime"]
-            plate = data["plate"]
-            parking_lot = data["parkingLot"]
+            start_time = data[3]
+            plate = data[1]
+            parking_lot = data[2]
             
-            delta = now_time - parse(start_time)
+            delta = now_time - start_time
             minutes_passed = delta.seconds // 60
             
             added = 0
             if (minutes_passed % 15 != 0):
                 added = 1
-            payment = minutes_passed / 15 +  added
+            payment = minutes_passed // 15 +  added
             
             total_price = payment * price_per_15
             
-            return_string =f"goodbye {plate} , {parking_lot} Thank you for parking, your total acount is {total_price}."
+            return_string =f"goodbye {plate} , {parking_lot} Thank you for parking, your total acount is {total_price} NIS."
             
             print(return_string)
             return {
