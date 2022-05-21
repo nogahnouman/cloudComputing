@@ -16,16 +16,6 @@ password = os.environ['db_password1']
 ENCRYPTED_name = os.environ['db_username']
 ENCRYPTED_password = os.environ['db_password']
 
-# Decrypt code should run once and variables stored outside of the function
-# handler so that these are decrypted once per container
-
-print("1")
-name = boto3.client('kms').decrypt(CiphertextBlob=b64decode(ENCRYPTED_name))['Plaintext'].decode('utf-8')
-password = boto3.client('kms').decrypt(CiphertextBlob=b64decode(ENCRYPTED_password))['Plaintext'].decode('utf-8')
-print("2")
-print (name)
-print (password)
-
 db_name = "parkingLot"
 
 price_per_15 = 3
