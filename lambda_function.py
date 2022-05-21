@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import json
 import os
 import sys
@@ -43,15 +44,18 @@ logger.info("SUCCESS: Connection to RDS MySQL instance succeeded")
 
 def lambda_handler(event, context):
     
-    if event['path'] == "retry":
-    
+    print ("in handler")
+    print(event)
+
+    if event['path'] == "entry":
+        print("in entry event")
         plate = event['queryStringParameters']['plate']
         parking_lot = event['queryStringParameters']['parkingLot']
         time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        id = str(uuid.uuid1())
         
         with conn.cursor() as cursor:
             cursor.execute("create table payment ( ticketID varchar(255) NOT NULL, plate varchar(255) NOT NULL, parkingLot int NOT ,entryTime DATE, PRIMARY KEY (ticketID))")
-            id = str(uuid.uuid1())
             print("before sql insert")
             sql = f"INSERT INTO `payment` (`id`, `plate`, `parkingLot`, `entryTime`) VALUES ({id}, {plate}, {parking_lot}, {time})"
             try: 
