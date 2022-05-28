@@ -6,17 +6,13 @@ import pymysql
 from datetime import datetime
 import uuid
 from base64 import b64decode
-import boto3
 from dateutil.parser import parse
 
 # rds settings
 db_host  = os.environ["db_host"]
 name = os.environ['db_username1']
 password = os.environ['db_password1']
-ENCRYPTED_name = os.environ['db_username']
-ENCRYPTED_password = os.environ['db_password']
-
-db_name = "parkingLot"
+db_name = os.environ['db_name']
 
 price_per_15 = 3
 
